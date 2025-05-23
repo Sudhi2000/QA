@@ -1,0 +1,35 @@
+name: Sync main to development in another repo
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync-repo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo A
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.DEV_REPO_TOKEN }}
+
+      - name: Copy code to temp folder
+        run: |
+          mkdir temp && cp -R . temp/
+
+      - name: Clone Repo B (development repo)
+        run: |
+          git clone https://x-access-token:${{ secrets.DEV_REPO_TOKEN }}@github.com/Sudhi2000/CI_CD_Sample2
+          cd repo-b
+          git checkout development
+
+      - name: Copy and push changes to Repo B
+        run: |
+          cp -R temp/* repo-b/
+          cd repo-b
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add .
+          git commit -m "Sync changes from main of Repo A" || echo "No changes"
+          git push origin development
